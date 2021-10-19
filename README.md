@@ -11,6 +11,7 @@ and secure application delivery.
 - terraform
 - ansible
 - ssh keys
+- packer (optional)
 
 ## How it works
 
@@ -25,8 +26,13 @@ it's advised to spin up 3 servers and at least 1 client)
 This will spin up a nomad and consul cluster, with the consul and nomad servers on the same instance. Consul is span \
 up first and is responsible for service discorvery. Nomad then spins up and uses consul to find the other servers.
 
-When it comes to specifying an ami, it is recommended to user packer to create a base image which contains the latest \
-versions of nomad and consul.
+When it comes to specifying an ami, it is recommended to use packer to create a base image which contains the latest \
+versions of nomad and consul. You can use a public ami however it contains quite old versions of nomad and consul \
+baked in. Follow these steps to create your own base image (with your AWS credentials exported):
+
+a. `cd packer`
+b. `packer init .`
+c. `packer build aws-ubuntu.pkr`
 
 After the ec2 instances are span up, then terraform outputs to the server and clients public ips to `ansible.cfg` in \
 the `ansible/` dir. Ansible configures the servers first with consul and then nomad (running them both as daemons).

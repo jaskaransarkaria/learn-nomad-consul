@@ -1,0 +1,49 @@
+---
+
+- name: init-consul-and-nomad-servers
+  hosts: servers
+  become: true
+  tasks:
+    - name: Create target nomad directory
+      file:
+        path: /etc/nomad.d
+        state: directory
+    - name: Create target consul directory
+      file:
+        path: /etc/consul.d
+        state: directory
+    - copy:
+        src: ../config/consul-server.hcl
+        dest: /etc/consul.d/consul.hcl
+        owner: root
+        group: root
+    - copy:
+        src: ../config/consul.service
+        dest: /etc/systemd/system/consul.service
+        owner: root
+        group: root
+    - copy:
+        src: ../config/nomad-server.hcl
+        dest: /etc/nomad.d/server.hcl
+        owner: root
+        group: root
+    - copy:
+        src: ../config/nomad.service
+        dest: /etc/systemd/system/nomad.service
+        owner: root
+        group: root
+    - name: update server node name
+      command: sudo sed -i 's/"consul-server"/"consul-server-{{ 100 | random }}"/' /etc/consul.d/consul.hcl
+    - name: Enable Consul Agent
+      command: sudo systemctl enable consul
+    - name: Start Consul Agent
+      command: sudo systemctl start consul
+    - name: Enable Nomad Agent
+      command: sudo systemctl enable nomad
+    - name: Start Nomad Agent
+      command: sudo systemctl start nomad
+    - name: Get Consul Service Status
+      command: sudo systemctl status consul
+    - name: Get Nomad Service Status
+      command: sudo systemctl status nomad
+

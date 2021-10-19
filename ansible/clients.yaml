@@ -1,0 +1,78 @@
+---
+
+- name: init-consul-and-nomad-client
+  hosts: clients
+  become: true
+  tasks:
+    - name: Create Nomad directory
+      file:
+        path: /home/nomad
+        state: directory
+        owner: nomad
+        group: nomad
+        recurse: yes
+    - name: Create Consul directory
+      file:
+        path: /home/consul
+        state: directory
+        owner: consul
+        group: consul
+        recurse: yes
+    - name: Create target nomad directory
+      file:
+        path: /etc/nomad.d
+        state: directory
+    - name: Create target consul directory
+      file:
+        path: /etc/consul.d
+        state: directory
+    - copy:
+        src: ../config/consul-client.hcl
+        dest: /etc/consul.d/consul.hcl
+        owner: root
+        group: root
+    - copy:
+        src: ../config/consul.service
+        dest: /etc/systemd/system/consul.service
+        owner: root
+        group: root
+    - copy:
+        src: ../config/nomad-client.hcl
+        dest: /etc/nomad.d/client.hcl
+        owner: root
+        group: root
+    - copy:
+        src: ../config/nomad.service
+        dest: /etc/systemd/system/nomad.service
+        owner: root
+        group: root
+    - name: update client node name
+      command: sudo sed -i 's/"consul-client"/"consul-client-{{ 100 | random }}"/' /etc/consul.d/consul.hcl
+    - name: Install aptitude using apt
+      apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: [ 'apt-transport-https', 'ca-certificates', 'software-properties-common']
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+    - name: Update apt and install docker-ce
+      apt: update_cache=yes name=docker-ce state=latest
+    - name: Enable Consul Agent
+      command: sudo systemctl enable consul
+    - name: Start Consul Agent
+      command: sudo systemctl start consul
+    - name: Enable Nomad Agent
+      command: sudo systemctl enable nomad
+    - name: Start Nomad Agent
+      command: sudo systemctl start nomad
+    - name: Get Consul Service Status
+      command: sudo systemctl status consul
+    - name: Get Nomad Service Status
+      command: sudo systemctl status nomad
+

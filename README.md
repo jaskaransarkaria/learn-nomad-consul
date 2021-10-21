@@ -62,3 +62,4 @@ Deploy Fabio (a zero conf load balancer) and then deploy some containers!
 
 - [  ] - integrate consul connect
 - [  ] - research ACL
+- [  ] - research terraform tests

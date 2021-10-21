@@ -3,6 +3,7 @@ variable "subnet_ids" {}
 variable "vpc_id" {}
 variable "ec2_instances" {}
 
+# ALB
 resource "aws_lb" "servers" {
   name               = "nomad-consul-alb"
   internal           = false
@@ -19,7 +20,7 @@ resource "aws_lb_target_group" "nomad_servers" {
   vpc_id   = var.vpc_id
 }
 
-
+# Consul server target group
 resource "aws_lb_target_group" "consul_servers" {
   name     = "consul-servers-tg"
   port     = 8500
@@ -27,6 +28,7 @@ resource "aws_lb_target_group" "consul_servers" {
   vpc_id   = var.vpc_id
 }
 
+# ALB listener for nomad
 resource "aws_lb_listener" "nomad_lb" {
   load_balancer_arn = aws_lb.servers.arn
   port              = "4646"
@@ -38,6 +40,7 @@ resource "aws_lb_listener" "nomad_lb" {
   }
 }
 
+# ALB listener for consul
 resource "aws_lb_listener" "consul_lb" {
   load_balancer_arn = aws_lb.servers.arn
   port              = "8500"
@@ -49,7 +52,7 @@ resource "aws_lb_listener" "consul_lb" {
   }
 }
 
-# Find the target group
+# Find the consul target group
 data "aws_lb_target_group" "find_consul_servers" {
   name = "consul-servers-tg"
   depends_on = [
@@ -57,7 +60,7 @@ data "aws_lb_target_group" "find_consul_servers" {
   ]
 }
 
-# Attach an EC2 instance to the target group on port 80
+# Attach an EC2 instance to the target group on port 8500
 resource "aws_lb_target_group_attachment" "consul" {
   count = 3
   target_group_arn = data.aws_lb_target_group.find_consul_servers.arn
@@ -65,7 +68,7 @@ resource "aws_lb_target_group_attachment" "consul" {
   port             = 8500
 }
 
-# Find the target group
+# Find the nomad target group
 data "aws_lb_target_group" "find_nomad_servers" {
   name = "nomad-servers-tg"
   depends_on = [
@@ -73,7 +76,7 @@ data "aws_lb_target_group" "find_nomad_servers" {
   ]
 }
 
-# Attach an EC2 instance to the target group on port 80
+# Attach an EC2 instance to the target group on port 4646
 resource "aws_lb_target_group_attachment" "nomad" {
   count = 3
   target_group_arn = data.aws_lb_target_group.find_nomad_servers.arn

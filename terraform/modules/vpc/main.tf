@@ -4,7 +4,7 @@ variable "public_subnets_cidr" {}
 variable "private_subnets_cidr" {}
 variable "owner" {}
 
-# 1. Create vpc
+# Create vpc
 resource "aws_vpc" "vpc" {
   cidr_block       = var.vpc_cidr
   instance_tenancy = "default"
@@ -16,7 +16,7 @@ resource "aws_vpc" "vpc" {
   }
 }
 
-# 2. Create Internet Gateway
+# Create Internet Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
 
@@ -25,13 +25,13 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-# elastic ip for NAT
+# Create elastic ip for NAT
 resource "aws_eip" "nat_eip" {
   vpc        = true
   depends_on = [aws_internet_gateway.igw]
 }
 
-# NAT
+# Create NAT
 resource "aws_nat_gateway" "nat" {
   allocation_id = "${aws_eip.nat_eip.id}"
   subnet_id     = "${element(aws_subnet.public.*.id, 0)}"
@@ -51,13 +51,12 @@ resource "aws_route_table" "rtb" {
     gateway_id = aws_internet_gateway.igw.id
   }
 
-
   tags = {
     Owner = var.owner
   }
 }
 
-# 4. Create a Subnet 
+# Create Public Subnet 
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.vpc.id
   count = "${length(var.public_subnets_cidr)}"
@@ -70,7 +69,7 @@ resource "aws_subnet" "public" {
   }
 }
 
-
+# Create Private Subnet
 resource "aws_subnet" "private" {
   vpc_id                  = aws_vpc.vpc.id
   count = "${length(var.private_subnets_cidr)}"
@@ -82,13 +81,13 @@ resource "aws_subnet" "private" {
   }
 }
 
-# 5. Associate subnet with Route Table
+# Associate subnet with Route Table
 resource "aws_main_route_table_association" "main_rtb_association" {
   vpc_id         = aws_vpc.vpc.id
   route_table_id = aws_route_table.rtb.id
 }
 
-# routing table for public subnet
+# Routing table for public subnet
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.vpc.id
 
@@ -97,7 +96,7 @@ resource "aws_route_table" "public" {
   }
 }
 
-# routing table for private subnet
+# Routing table for private subnet
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.vpc.id
 
@@ -106,34 +105,35 @@ resource "aws_route_table" "private" {
   }
 }
 
-# link igw to public route table
+# Link igw to public route table
 resource "aws_route" "public_igw" {
   route_table_id = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id = aws_internet_gateway.igw.id
 }
 
-# link nat gateway to private routing table
+# Link nat gateway to private routing table
 resource "aws_route" "private_nat_gateway" {
   route_table_id = "${aws_route_table.private.id}"
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id = "${aws_nat_gateway.nat.id}"
 }
 
-# route table associations
+# Public route table associations
 resource "aws_route_table_association" "public" {
   count          = "${length(var.public_subnets_cidr)}"
   subnet_id      = "${element(aws_subnet.public.*.id, count.index)}"
   route_table_id = "${aws_route_table.public.id}"
 }
 
+# Private route table associations
 resource "aws_route_table_association" "private" {
   count          = "${length(var.private_subnets_cidr)}"
   subnet_id      = "${element(aws_subnet.private.*.id, count.index)}"
   route_table_id = "${aws_route_table.private.id}"
 }
 
-/*==== VPC's Default Security Group ======*/
+# Default VPC security Group
 resource "aws_security_group" "default" {
   name        = "${var.owner}-default-sg"
   description = "Default security group to allow inbound/outbound from the VPC"
@@ -154,5 +154,5 @@ resource "aws_security_group" "default" {
   }
   tags = {
     Owner = var.owner
-}
+  }
 }

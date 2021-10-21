@@ -23,6 +23,7 @@ variable "retry_join" {
   }
 }
 
+# Server user data
 data "template_file" "user_data_server" {
   template = file("${path.root}/user-data-server.sh")
 
@@ -39,6 +40,7 @@ data "template_file" "user_data_server" {
   }
 }
 
+# Client user data
 data "template_file" "user_data_client" {
   template = file("${path.root}/user-data-client.sh")
 
@@ -54,6 +56,7 @@ data "template_file" "user_data_client" {
   }
 }
 
+# Servers
 resource "aws_instance" "server" {
   ami                    = var.ami
   instance_type          = var.server_instance_type
@@ -82,6 +85,7 @@ resource "aws_instance" "server" {
   iam_instance_profile = var.instance_profile.name
 }
 
+# Clients
 resource "aws_instance" "client" {
   ami                    = var.ami
   instance_type          = var.client_instance_type
@@ -118,6 +122,7 @@ resource "aws_instance" "client" {
   iam_instance_profile = var.instance_profile.name
 }
 
+# Bastions
 resource "aws_instance" "bastion" {
   ami = "ami-0194c3e07668a7e36" # ubuntu 16
   instance_type = "t2.micro"

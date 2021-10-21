@@ -4,6 +4,13 @@ provider "aws" {
 
 terraform {
   required_version = ">= 0.12"
+
+  backend "s3" {
+    bucket = "jaskaran-learn-nomad-consul-tf-state"
+    key    = "terraform.tfstate"
+    region = "eu-west-2"
+  }
+
 }
 
 module "vpc" {

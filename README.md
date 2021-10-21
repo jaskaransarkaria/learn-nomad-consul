@@ -15,16 +15,25 @@ and secure application delivery.
 
 ## How it works
 
-1. Export your AWS profile
-2. Create and fill out a `terraform.tfvars` in the `terraform/` dir (cross reference `variables.tf`, \
-it's advised to spin up 3 servers and at least 1 client)
-3. In `terraform/` run `terraform init`
-4. In ansible `chmod +x  ./init-agents.sh`
-5. In the root dir of the the repo `chmod +x ./create-cluster.sh`
-6. `./create-cluster.sh`
+### Required for running commands which require communication with AWS
+
+0. Export or set your AWS profile
+
+### Deploying the cluster
+
+1. Create and fill out a `terraform.tfvars` in the `terraform/` dir (cross reference `variables.tf`, \
+it's advised to spin up 3 servers and at least 1 client). Also adjust the `locals.tf` to personalise the stack.
+2. In `terraform/` run `terraform init`
+3. In ansible `chmod +x  ./init-agents.sh`
+4. In the root dir of the the repo `chmod +x ./create-cluster.sh`
+5. `./create-cluster.sh`
 
 This will spin up a nomad and consul cluster, with the consul and nomad servers on the same instance. Consul is span \
 up first and is responsible for service discorvery. Nomad then spins up and uses consul to find the other servers.
+
+Without the autoscaling this is the infrastructure that is span up:
+
+![nomad cluster infrastructure diagram](./assets/hashicorp-nomad-on-aws-architecture.1ac0036760cf893469567a74feb905adb6082a86.png)
 
 When it comes to specifying an ami, it is recommended to use packer to create a base image which contains the latest \
 versions of nomad and consul. You can use a public ami however it contains quite old versions of nomad and consul \
@@ -38,6 +47,11 @@ After the ec2 instances are span up, then terraform outputs to the server and cl
 the `ansible/` dir. Ansible configures the servers first with consul and then nomad (running them both as daemons).
 Ansible then sets up the clients and installs docker so that we can run docker based jobs.
 
+### Destroying the cluster
+
+1. `cd terraform/`
+2. `terraform destroy`
+
 ## Next steps
 
 Deploy Fabio (a zero conf load balancer) and then deploy some containers! 
@@ -46,6 +60,5 @@ Deploy Fabio (a zero conf load balancer) and then deploy some containers!
 
 ## Todo
 
-- [  ] - Rejig the VPC configuration to make it more production ready
 - [  ] - integrate consul connect
 - [  ] - research ACL

@@ -22,11 +22,11 @@ and secure application delivery.
 ### Deploying the cluster
 
 1. 
-  1a. Create and fill out a `terraform.tfvars` in the `terraform/` dir (cross reference `variables.tf`, \
-      it's advised to spin up 3 servers and at least 1 client). Also adjust the `locals.tf` to personalise the stack.
+      1a. Create and fill out a `terraform.tfvars` in the `terraform/` dir (cross reference `variables.tf`, \
+          it's advised to spin up 3 servers and at least 1 client). Also adjust the `locals.tf` to personalise the stack.
 
-  1b. Also update `main.tf` (backend stanza doesn't allow you to use variables here) to point to your own s3 bucket \
-      (to store terraform.tfstate)
+      1b. Also update `main.tf` (backend stanza doesn't allow you to use variables here) to point to your own s3 bucket \
+          (to store terraform.tfstate)
 
 2. In `terraform/` run `terraform init`
 

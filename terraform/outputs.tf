@@ -1,9 +1,9 @@
 output "IP_Addresses" {
   value = <<CONFIGURATION
 
-Client public IPs: ${join(", ", module.hashistack.client_public_ips)}
+Client public IPs: ${join(", ", module.ec2.client_private_ip)}
 
-Server public IPs: ${join(", ", module.hashistack.server_public_ips)}
+Server public IPs: ${join(", ", module.ec2.server_private_ip)}
 
 To connect, add your private key and SSH into any client or server with
 `ssh ubuntu@PUBLIC_IP`. You can test the integrity of the cluster by running:
@@ -21,12 +21,12 @@ executing:
 
 Simply wait a few seconds and rerun the command if this occurs.
 
-The Nomad UI can be accessed at http://${module.hashistack.server_lb_ip}:4646/ui.
-The Consul UI can be accessed at http://${module.hashistack.server_lb_ip}:8500/ui.
+The Nomad UI can be accessed at http://${module.alb.server_lb_ip[0]}:4646/ui.
+The Consul UI can be accessed at http://${module.alb.server_lb_ip[0]}:8500/ui.
 
 Set the following for access from the Nomad CLI:
 
-  export NOMAD_ADDR=http://${module.hashistack.server_lb_ip}:4646
+  export NOMAD_ADDR=http://${module.alb.server_lb_ip[0]}:4646
 
 CONFIGURATION
 
@@ -35,11 +35,70 @@ CONFIGURATION
 resource "local_file" "client_and_server_addresses" {
   content = <<EOT
 [servers]
-${join("\n",formatlist("%s ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${var.key_location}", module.hashistack.server_public_ips))}
-  
+${join("\n",formatlist("%s ansible_connection=ssh", module.ec2.server_private_ip))}
+
+[servers:vars]
+ansible_ssh_common_args = "-F ./ssh.cfg"
+
 [clients]
-${join("\n",formatlist("%s ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${var.key_location}", module.hashistack.client_public_ips))}
+${join("\n",formatlist("%s ansible_connection=ssh", module.ec2.client_private_ip))}
+
+[clients:vars]
+ansible_ssh_common_args = "-F ./ssh.cfg"
+
 EOT
 
   filename = "../ansible/ansible.cfg"
+}
+
+resource "local_file" "ssh_config" {
+  content = <<EOT
+Host ${replace(local.private_subnets_cidr[0], "0/24", "*")}
+  ProxyJump bastion-0
+  IdentityFile ${var.key_location}
+  StrictHostKeyChecking accept-new
+  User ubuntu
+
+Host ${replace(local.private_subnets_cidr[1], "0/24", "*")}
+  ProxyJump bastion-1
+  IdentityFile ${var.key_location}
+  StrictHostKeyChecking accept-new
+  User ubuntu
+
+Host ${replace(local.private_subnets_cidr[2], "0/24", "*")}
+  ProxyJump bastion-2
+  IdentityFile ${var.key_location}
+  StrictHostKeyChecking accept-new
+  User ubuntu
+
+Host bastion-0
+  Hostname ${module.ec2.bastion_ips[0]}
+  User ubuntu
+  IdentityFile ${var.key_location}
+  ControlMaster auto
+  ControlPath ~/.ssh/ansible-%r@%h:%p
+  ControlPersist 5m
+  StrictHostKeyChecking accept-new
+
+Host bastion-1
+  Hostname  ${module.ec2.bastion_ips[1]}
+  User ubuntu
+  IdentityFile ${var.key_location}
+  ControlMaster auto
+  ControlPath ~/.ssh/ansible-%r@%h:%p
+  ControlPersist 5m
+  StrictHostKeyChecking accept-new
+
+Host bastion-2
+  Hostname  ${module.ec2.bastion_ips[2]}
+  User ubuntu
+  IdentityFile ${var.key_location} 
+  ControlMaster auto
+  ControlPath ~/.ssh/ansible-%r@%h:%p
+  ControlPersist 5m
+  StrictHostKeyChecking accept-new
+
+EOT
+
+filename = "../ansible/ssh.cfg" 
 }

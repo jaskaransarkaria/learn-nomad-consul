@@ -7,7 +7,7 @@ terraform {
 }
 
 module "vpc" {
-  source        = "../vpc"
+  source        = "./modules/vpc"
   region_az     = local.region_az
   vpc_cidr      = local.vpc_cidr
   public_subnets_cidr = local.public_subnets_cidr
@@ -16,19 +16,19 @@ module "vpc" {
 }
 
 module "security_groups" {
-  source = "../security_groups"
+  source = "./modules/security_groups"
   name = var.name
   vpc_id = module.vpc.vpc_id
   whitelist_ip = var.whitelist_ip
 }
 
 module "policies_and_roles" {
-  source = "../policies_and_roles"
+  source = "./modules/policies_and_roles"
   name = var.name
 }
 
 module "ec2" {
-  source = "../ec2"
+  source = "./modules/ec2"
   name = var.name
   server_count = var.server_count
   client_count = var.client_count
@@ -46,7 +46,7 @@ module "ec2" {
 }
 
 module "alb" {
-  source = "../alb"
+  source = "./modules/alb"
   server_lb_sg_id = module.security_groups.sg_server_lb_id
   subnet_ids = module.vpc.public_subnet_ids
   vpc_id = module.vpc.vpc_id

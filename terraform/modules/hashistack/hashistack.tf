@@ -41,13 +41,18 @@ variable "retry_join" {
   }
 }
 
-data "aws_vpc" "default" {
-  default = true
+module "vpc" {
+  source        = "../vpc"
+  region_az     = local.region_az
+  vpc_cidr      = local.vpc_cidr
+  public_subnets_cidr = local.public_subnets_cidr
+  private_subnets_cidr = local.private_subnets_cidr
+  owner         = local.owner
 }
 
 resource "aws_security_group" "server_lb" {
   name   = "${var.name}-server-lb"
-  vpc_id = data.aws_vpc.default.id
+  vpc_id = module.vpc.vpc_id
 
   # Nomad
   ingress {
@@ -75,7 +80,7 @@ resource "aws_security_group" "server_lb" {
 
 resource "aws_security_group" "primary" {
   name   = var.name
-  vpc_id = data.aws_vpc.default.id
+  vpc_id = module.vpc.vpc_id
 
   ingress {
     from_port   = 22
@@ -192,6 +197,7 @@ resource "aws_instance" "server" {
   ami                    = var.ami
   instance_type          = var.server_instance_type
   key_name               = var.key_name
+  subnet_id = "${element(module.vpc.private_subnet_ids, count.index)}"
   vpc_security_group_ids = [aws_security_group.primary.id]
   count                  = var.server_count
 
@@ -219,6 +225,7 @@ resource "aws_instance" "client" {
   ami                    = var.ami
   instance_type          = var.client_instance_type
   key_name               = var.key_name
+  subnet_id = "${element(module.vpc.private_subnet_ids, count.index)}"
   vpc_security_group_ids = [aws_security_group.primary.id]
   count                  = var.client_count
   depends_on             = [aws_instance.server]
@@ -248,6 +255,19 @@ resource "aws_instance" "client" {
 
   user_data            = data.template_file.user_data_client.rendered
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
+}
+
+resource "aws_instance" "bastion" {
+  ami = "ami-0194c3e07668a7e36" # ubuntu 16
+  instance_type = "t2.micro"
+  key_name = var.key_name
+  subnet_id = "${element(module.vpc.public_subnet_ids, count.index)}"
+  vpc_security_group_ids = [aws_security_group.primary.id]
+  count = var.server_count
+
+  tags = {
+    Name = "bastion-${count.index}"
+  }
 }
 
 resource "aws_iam_instance_profile" "instance_profile" {
@@ -292,35 +312,48 @@ data "aws_iam_policy_document" "auto_discover_cluster" {
   }
 }
 
-resource "aws_elb" "server_lb" {
-  name               = "${var.name}-server-lb"
-  availability_zones = distinct(aws_instance.server.*.availability_zone)
-  internal           = false
-  instances          = aws_instance.server.*.id
-  listener {
-    instance_port     = 4646
-    instance_protocol = "http"
-    lb_port           = 4646
-    lb_protocol       = "http"
-  }
-  listener {
-    instance_port     = 8500
-    instance_protocol = "http"
-    lb_port           = 8500
-    lb_protocol       = "http"
-  }
-  security_groups = [aws_security_group.server_lb.id]
+
+# resource "aws_elb" "server_lb" {
+#   name               = "${var.name}-server-lb"
+#   subnets = "${module.vpc.public_subnet_ids}"
+#   #availability_zones = distinct(aws_instance.server.*.availability_zone)
+#   internal           = false
+#   instances          = aws_instance.bastion.*.id
+#   listener {
+#     instance_port     = 4646
+#     instance_protocol = "http"
+#     lb_port           = 4646
+#     lb_protocol       = "http"
+#   }
+#   listener {
+#     instance_port     = 8500
+#     instance_protocol = "http"
+#     lb_port           = 8500
+#     lb_protocol       = "http"
+#   }
+#   security_groups = [aws_security_group.server_lb.id]
+# }
+
+output "server_private_ip" {
+  value = aws_instance.server.*.private_ip
 }
 
-output "server_public_ips" {
-  value = aws_instance.server[*].public_ip
+output "client_private_ip" {
+  value = aws_instance.client.*.private_ip
 }
 
-output "client_public_ips" {
-  value = aws_instance.client[*].public_ip
+output "bastion_ips" {
+  value = aws_instance.bastion[*].public_ip
 }
 
-output "server_lb_ip" {
-  value = aws_elb.server_lb.dns_name
+output "public_subnets_cidr" {
+  value = local.public_subnets_cidr
 }
+
+output "private_subnets_cidr" {
+  value = local.private_subnets_cidr
+}
+#output "server_lb_ip" {
+#  value = aws_elb.server_lb.dns_name
+#}
 

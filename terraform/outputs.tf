@@ -21,12 +21,12 @@ executing:
 
 Simply wait a few seconds and rerun the command if this occurs.
 
-The Nomad UI can be accessed at http://module.hashistack.server_lb_ip:4646/ui.
-The Consul UI can be accessed at http://module.hashistack.server_lb_ip:8500/ui.
+The Nomad UI can be accessed at http://${module.hashistack.server_lb_ip[0]}:4646/ui.
+The Consul UI can be accessed at http://${module.hashistack.server_lb_ip[0]}:8500/ui.
 
 Set the following for access from the Nomad CLI:
 
-  export NOMAD_ADDR=http://module.hashistack.server_lb_ip:4646
+  export NOMAD_ADDR=http://${module.hashistack.server_lb_ip[0]}:4646
 
 CONFIGURATION
 

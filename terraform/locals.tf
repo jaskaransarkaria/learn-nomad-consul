@@ -1,4 +1,3 @@
-
 locals {
   stack_name    = "nomad-consul"
   owner         = "Jazz"

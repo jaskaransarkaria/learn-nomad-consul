@@ -39,7 +39,8 @@ and secure application delivery.
 This will spin up a nomad and consul cluster, with the consul and nomad servers on the same instance. Consul is span \
 up first and is responsible for service discorvery. Nomad then spins up and uses consul to find the other servers.
 
-Without the autoscaling this is the infrastructure that is span up:
+Without the autoscaling and the fact that the consul and nomad servers are actually deployed together on one server \
+this is the infrastructure that is span up:
 
 ![nomad cluster infrastructure diagram](./assets/hashicorp-nomad-on-aws-architecture.1ac0036760cf893469567a74feb905adb6082a86.png)
 

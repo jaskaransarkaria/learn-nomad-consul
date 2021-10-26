@@ -51,7 +51,7 @@ and secure application delivery.
 
 ```
 
-3. Decide on if you will create your own ami or use an older deprecated but prebuilt one [see](#AMI-&-Packer)
+3. Decide on if you will create your own ami or use an older deprecated but prebuilt one [see](#ami--packer)
 
 ### Deploying the cluster
 

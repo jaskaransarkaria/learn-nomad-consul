@@ -15,9 +15,43 @@ and secure application delivery.
 
 ## How it works
 
+
+
 ### Required for running commands which require communication with AWS
 
 0. Export or set your AWS profile
+1. Create an s3 bucket with no public access and the following bucket policy:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowRootToGetAndPut",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::$AWS_ACCOUNT_ID:root"
+            },
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::$S3_BUCKET_NAME/terraform.tfstate"
+        },
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::$AWS_ACCOUNT_ID:root"
+            },
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::$S3_BUCKET_NAME"
+        }
+    ]
+}
+
+```
+
+3. Decide on if you will create your own ami or use an older deprecated but prebuilt one [see](#AMI-&-Packer)
 
 ### Deploying the cluster
 
@@ -44,9 +78,14 @@ this is the infrastructure that is span up:
 
 ![nomad cluster infrastructure diagram](./assets/hashicorp-nomad-on-aws-architecture.1ac0036760cf893469567a74feb905adb6082a86.png)
 
+#### AMI & Packer
+
 When it comes to specifying an ami, it is recommended to use packer to create a base image which contains the latest \
-versions of nomad and consul. You can use a public ami however it contains quite old versions of nomad and consul \
-baked in. Follow these steps to create your own base image (with your AWS credentials exported):
+versions of nomad and consul. Note: If you try and do this in the sandbox after an AWS nuke has ran you will need to \
+create a VPC with a public subnet from which packer can spin up an ec2 to create the ami. You then need to pass the \
+vpc id and public subnet id to the locals variable in `packer/aws-ubuntu.pkr.hcl` You can use a premade public \
+ami ("ami-0f5b77f5e53001306") too, however it contains quite old versions of nomad and consul baked in. Follow these \
+steps to create your own base image (with your AWS credentials exported):
 
 a. `cd packer`
 
@@ -74,3 +113,5 @@ Deploy Fabio (a zero conf load balancer) and then deploy some containers!
 - [  ] - integrate consul connect
 - [  ] - research ACL
 - [  ] - research terraform tests
+- [  ] - set up dev/stage/prod environments
+- [  ] - HTTPS

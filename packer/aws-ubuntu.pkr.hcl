@@ -7,10 +7,17 @@ packer {
   }
 }
 
+locals {
+  vpc_id = "vpc-0383b61088104b500"
+  public_subnet_id = "subnet-01692ca41a0558ac5"
+}
+
 source "amazon-ebs" "ubuntu" {
   ami_name      = "packer-ubuntu-18-nomad-consul-aws"
   instance_type = "t2.micro"
   region        = "eu-west-2"
+  vpc_id = local.vpc_id
+  subnet_id = local.public_subnet_id
   source_ami_filter {
     filters = {
       name                = "ubuntu/images/*ubuntu-bionic-18.04-amd64-server-*"

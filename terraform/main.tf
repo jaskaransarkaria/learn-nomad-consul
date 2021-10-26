@@ -6,7 +6,7 @@ terraform {
   required_version = ">= 0.12"
 
   backend "s3" {
-    bucket = "jaskaran-learn-nomad-consul-tf-state"
+    bucket = "jazz-terraform"
     key    = "terraform.tfstate"
     region = "eu-west-2"
   }

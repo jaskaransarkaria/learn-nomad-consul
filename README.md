@@ -15,8 +15,6 @@ and secure application delivery.
 
 ## How it works
 
-
-
 ### Required for running commands which require communication with AWS
 
 0. Export or set your AWS profile
@@ -101,6 +99,13 @@ Ansible then sets up the clients and installs docker so that we can run docker b
 
 1. `cd terraform/`
 2. `terraform destroy`
+
+## Testing the infrastructure
+
+The testing framework uses [terratest](https://terratest.gruntwork.io/), and you can find the tests under \
+`terraform/tests/`. Use the following command to run tests (with your AWS credentials):
+
+`go test -v -timeout 30m` - It's important to add a timeout as the infrastructure is actually being span up and down.
 
 ## Next steps
 

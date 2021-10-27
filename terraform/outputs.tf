@@ -102,3 +102,15 @@ EOT
 
 filename = "../ansible/ssh.cfg" 
 }
+
+output "bastion_ips" {
+  value = module.ec2.bastion_ips
+}
+
+output "client_ips" {
+  value = module.ec2.client_private_ip
+}
+
+output "server_ips" {
+  value = module.ec2.server_private_ip
+}

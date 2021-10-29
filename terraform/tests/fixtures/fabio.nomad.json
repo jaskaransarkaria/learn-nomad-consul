@@ -1,0 +1,67 @@
+{
+  "job": [
+    {
+      "fabio": [
+        {
+          "datacenters": [
+            "dc1"
+          ],
+          "group": [
+            {
+              "fabio": [
+                {
+                  "network": [
+                    {
+                      "port": [
+                        {
+                          "lb": [
+                            {
+                              "static": 9999
+                            }
+                          ]
+                        },
+                        {
+                          "ui": [
+                            {
+                              "static": 9998
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "task": [
+                    {
+                      "fabio": [
+                        {
+                          "config": [
+                            {
+                              "image": "fabiolb/fabio",
+                              "network_mode": "host",
+                              "ports": [
+                                "lb",
+                                "ui"
+                              ]
+                            }
+                          ],
+                          "driver": "docker",
+                          "resources": [
+                            {
+                              "cpu": 200,
+                              "memory": 128
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "type": "system"
+        }
+      ]
+    }
+  ]
+}

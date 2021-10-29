@@ -1,0 +1,79 @@
+{
+  "job": [
+    {
+      "webserver": [
+        {
+          "datacenters": [
+            "dc1"
+          ],
+          "group": [
+            {
+              "webserver": [
+                {
+                  "count": 3,
+                  "network": [
+                    {
+                      "port": [
+                        {
+                          "http": [
+                            {
+                              "to": 80
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "restart": [
+                    {
+                      "attempts": 2,
+                      "delay": "15s",
+                      "interval": "30m",
+                      "mode": "fail"
+                    }
+                  ],
+                  "service": [
+                    {
+                      "check": [
+                        {
+                          "interval": "10s",
+                          "name": "alive",
+                          "path": "/",
+                          "timeout": "2s",
+                          "type": "http"
+                        }
+                      ],
+                      "name": "apache-webserver",
+                      "port": "http",
+                      "tags": [
+                        "urlprefix-/"
+                      ]
+                    }
+                  ],
+                  "task": [
+                    {
+                      "apache": [
+                        {
+                          "config": [
+                            {
+                              "image": "httpd:latest",
+                              "ports": [
+                                "http"
+                              ]
+                            }
+                          ],
+                          "driver": "docker"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "type": "service"
+        }
+      ]
+    }
+  ]
+}

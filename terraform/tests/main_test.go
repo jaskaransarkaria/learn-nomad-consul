@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// This is an e2e test it will spin the entire infrastrucure up and run ansible over the instances
+// it then fires a health check off for a load balanced server
 func TestMain(t *testing.T) {
 
 	t.Parallel()

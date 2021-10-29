@@ -11,6 +11,7 @@ and secure application delivery.
 - terraform
 - ansible
 - ssh keys
+- go (for testing)
 - packer (optional)
 
 ## How it works
@@ -104,6 +105,10 @@ Ansible then sets up the clients and installs docker so that we can run docker b
 
 The testing framework uses [terratest](https://terratest.gruntwork.io/), and you can find the tests under \
 `terraform/tests/`. Use the following command to run tests (with your AWS credentials):
+
+There is currently only an e2e test which spins up the entire infrastructure (reusing `terraform.tfvars`) and then \
+runs ansible over the top of the instances, finally the tests fire a health check at the nomad api which is fronted \
+by the load balancer.
 
 `go test -v -timeout 30m` - It's important to add a timeout as the infrastructure is actually being span up and down.
 

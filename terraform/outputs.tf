@@ -1,9 +1,11 @@
+variable "ansible_output_dir" {}
+
 output "IP_Addresses" {
   value = <<CONFIGURATION
 
-Client public IPs: ${join(", ", module.ec2.client_private_ip)}
+Client private`` IPs: ${join(", ", module.ec2.client_private_ip)}
 
-Server public IPs: ${join(", ", module.ec2.server_private_ip)}
+Server private IPs: ${join(", ", module.ec2.server_private_ip)}
 
 To connect, add your private key and SSH into any client or server with
 `ssh ubuntu@PUBLIC_IP`. You can test the integrity of the cluster by running:
@@ -48,7 +50,7 @@ ansible_ssh_common_args = "-F ./ssh.cfg"
 
 EOT
 
-  filename = "../ansible/ansible.cfg"
+  filename = "${var.ansible_output_dir}/ansible.cfg"
 }
 
 resource "local_file" "ssh_config" {
@@ -100,7 +102,7 @@ Host bastion-2
 
 EOT
 
-filename = "../ansible/ssh.cfg" 
+filename = "${var.ansible_output_dir}/ssh.cfg" 
 }
 
 output "bastion_ips" {
@@ -113,4 +115,8 @@ output "client_ips" {
 
 output "server_ips" {
   value = module.ec2.server_private_ip
+}
+
+output "alb_url" {
+  value = module.alb.server_lb_ip[0]
 }

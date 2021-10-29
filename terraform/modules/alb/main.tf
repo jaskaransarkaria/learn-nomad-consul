@@ -2,10 +2,11 @@ variable "server_lb_sg_id" {}
 variable "subnet_ids" {}
 variable "vpc_id" {}
 variable "ec2_instances" {}
+variable "name" {}
 
 # ALB
 resource "aws_lb" "servers" {
-  name               = "nomad-consul-alb"
+  name               = "${var.name}-nomad-consul-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.server_lb_sg_id]
@@ -14,7 +15,7 @@ resource "aws_lb" "servers" {
 
 # Target group for the web servers
 resource "aws_lb_target_group" "nomad_servers" {
-  name     = "nomad-servers-tg"
+  name     = "${var.name}-nomad-servers-tg"
   port     = 4646
   protocol = "HTTP"
   vpc_id   = var.vpc_id
@@ -22,7 +23,7 @@ resource "aws_lb_target_group" "nomad_servers" {
 
 # Consul server target group
 resource "aws_lb_target_group" "consul_servers" {
-  name     = "consul-servers-tg"
+  name     = "${var.name}-consul-servers-tg"
   port     = 8500
   protocol = "HTTP"
   vpc_id   = var.vpc_id
@@ -54,7 +55,7 @@ resource "aws_lb_listener" "consul_lb" {
 
 # Find the consul target group
 data "aws_lb_target_group" "find_consul_servers" {
-  name = "consul-servers-tg"
+  name = "${var.name}-consul-servers-tg"
   depends_on = [
     aws_lb_target_group.consul_servers,
   ]
@@ -70,7 +71,7 @@ resource "aws_lb_target_group_attachment" "consul" {
 
 # Find the nomad target group
 data "aws_lb_target_group" "find_nomad_servers" {
-  name = "nomad-servers-tg"
+  name = "${var.name}-nomad-servers-tg"
   depends_on = [
     aws_lb_target_group.nomad_servers
   ]

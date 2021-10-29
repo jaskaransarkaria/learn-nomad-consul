@@ -2,7 +2,7 @@ variable "region_az" {}
 variable "vpc_cidr" {}
 variable "public_subnets_cidr" {}
 variable "private_subnets_cidr" {}
-variable "owner" {}
+variable "name" {}
 
 # Create vpc
 resource "aws_vpc" "vpc" {
@@ -12,7 +12,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_support   = true
 
   tags = {
-    Owner = var.owner
+    Owner = var.name
   }
 }
 
@@ -21,7 +21,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
 
   tags = {
-    Owner = var.owner
+    Owner = var.name
   }
 }
 
@@ -38,7 +38,7 @@ resource "aws_nat_gateway" "nat" {
   depends_on    = [aws_internet_gateway.igw]
 
   tags = {
-    Owner = var.owner
+    Owner = var.name
   }
 }
 
@@ -52,7 +52,7 @@ resource "aws_route_table" "rtb" {
   }
 
   tags = {
-    Owner = var.owner
+    Owner = var.name
   }
 }
 
@@ -65,7 +65,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Owner = var.owner
+    Owner = var.name
   }
 }
 
@@ -77,7 +77,7 @@ resource "aws_subnet" "private" {
   availability_zone       = "${element(var.region_az, count.index)}"
 
   tags = {
-    Owner = var.owner
+    Owner = var.name
   }
 }
 
@@ -92,7 +92,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.vpc.id
 
   tags = {
-    Owner = var.owner
+    Owner = var.name
   }
 }
 
@@ -101,7 +101,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.vpc.id
 
   tags = {
-    Owner = var.owner
+    Owner = var.name
   }
 }
 
@@ -135,7 +135,7 @@ resource "aws_route_table_association" "private" {
 
 # Default VPC security Group
 resource "aws_security_group" "default" {
-  name        = "${var.owner}-default-sg"
+  name        = "${var.name}-default-sg"
   description = "Default security group to allow inbound/outbound from the VPC"
   vpc_id      = "${aws_vpc.vpc.id}"
   depends_on  = [aws_vpc.vpc]
@@ -153,6 +153,6 @@ resource "aws_security_group" "default" {
     self      = "true"
   }
   tags = {
-    Owner = var.owner
+    Owner = var.name
   }
 }

@@ -12,6 +12,7 @@ and secure application delivery.
 - ansible
 - ssh keys
 - go (for testing)
+- nomad cli (for deploying jobs)
 - packer (optional)
 
 ## How it works
@@ -47,7 +48,6 @@ and secure application delivery.
         }
     ]
 }
-
 ```
 
 3. Decide on if you will create your own ami or use an older deprecated but prebuilt one [see](#ami--packer)
@@ -103,14 +103,16 @@ Ansible then sets up the clients and installs docker so that we can run docker b
 
 ## Testing the infrastructure
 
+Ensure you have nomad installed and available in your $PATH
+
 The testing framework uses [terratest](https://terratest.gruntwork.io/), and you can find the tests under \
 `terraform/tests/`. Use the following command to run tests (with your AWS credentials):
 
-There is currently only an e2e test which spins up the entire infrastructure (reusing `terraform.tfvars`) and then \
-runs ansible over the top of the instances, finally the tests fire a health check at the nomad api which is fronted \
-by the load balancer.
-
 `go test -v -timeout 30m` - It's important to add a timeout as the infrastructure is actually being span up and down.
+
+There is currently only an e2e test which spins up the entire infrastructure (reusing `terraform.tfvars`) and then \
+runs ansible over the top of the instances, finally the tests spin up an ingress load balancer with 3 example \
+apache web servers being balanced and then attempts to hit the web servers through the AWS alb.
 
 ## Next steps
 

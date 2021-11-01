@@ -58,6 +58,7 @@ module "alb" {
   server_lb_sg_id = module.security_groups.sg_server_lb_id
   subnet_ids = module.vpc.public_subnet_ids
   vpc_id = module.vpc.vpc_id
-  ec2_instances = module.ec2.ec2_servers
+  ec2_servers = module.ec2.ec2_servers
+  ec2_clients = module.ec2.ec2_clients
 }
 

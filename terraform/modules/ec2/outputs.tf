@@ -2,6 +2,10 @@ output "ec2_servers" {
   value = aws_instance.server
 }
 
+output "ec2_clients" {
+  value = aws_instance.client
+}
+
 output "server_private_ip" {
   value = aws_instance.server.*.private_ip
 }

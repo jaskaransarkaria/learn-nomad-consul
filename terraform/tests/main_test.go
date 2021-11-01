@@ -19,7 +19,6 @@ import (
 // This is an e2e test it will spin the entire infrastrucure up and run ansible over the instances
 // it then fires a health check off for a load balanced server
 func TestMain(t *testing.T) {
-
 	t.Parallel()
 
 	// we need to create a bucket and supply this as the back end so we don't overwrite any existing
@@ -73,11 +72,7 @@ func TestMain(t *testing.T) {
 	retry.DoWithRetry(t, "init the ec2 agents via ansible", maxRetries, timeBetweenRetries, runAnsibleFn)
 
 	albURL := terraform.Output(t, terraformOptions, "alb_url")
-	// Setup a TLS configuration to submit with the helper, a blank struct is acceptable
-	tlsConfig := tls.Config{}
-
-	// Verify that we get back a 200 OK with the expected response body -- this call checks one of the servers health
-	http_helper.HttpGetWithRetry(t, "http://"+albURL+":4646/v1/agent/health", &tlsConfig, 200, "{\"server\":{\"message\":\"ok\",\"ok\":true}}", maxRetries, timeBetweenRetries)
+	checkServicesAreOK(t, albURL, maxRetries, timeBetweenRetries)()
 }
 
 func cleanupS3Bucket(t *testing.T, awsRegion string, bucketName string) {
@@ -98,5 +93,48 @@ func runAnsible(t *testing.T) func() (string, error) {
 		}
 
 		return "succeeded", nil
+	}
+}
+
+func checkServicesAreOK(t *testing.T, albURL string, maxRetries int, timeBetweenRetries time.Duration) func() {
+	return func() {
+		// Setup a TLS configuration to submit with the helper, a blank struct is acceptable
+		tlsConfig := tls.Config{}
+
+		// Verify that we get back a 200 OK with the expected response body -- this call checks one of the servers health
+		http_helper.HttpGetWithRetry(t, "http://"+albURL+":4646/v1/agent/health", &tlsConfig, 200, "{\"server\":{\"message\":\"ok\",\"ok\":true}}", maxRetries, timeBetweenRetries)
+
+		fabioArgs := []string{"job", "run", "fabio.nomad"}
+		// run fabio ingress load balancer
+		err := shell.RunCommandE(t, shell.Command{
+			Command:    "/usr/local/bin/nomad",
+			Args:       fabioArgs,
+			WorkingDir: "fixtures/",
+			Env: map[string]string{
+				"NOMAD_ADDR": "http://" + albURL + ":4646/",
+			},
+		})
+
+		if err != nil {
+			t.Log(err)
+		}
+
+		webserverArgs := []string{"job", "run", "webserver.nomad"}
+		// run apache web server
+		err2 := shell.RunCommandE(t, shell.Command{
+			Command:    "/usr/local/bin/nomad",
+			Args:       webserverArgs,
+			WorkingDir: "fixtures/",
+			Env: map[string]string{
+				"NOMAD_ADDR": "http://" + albURL + ":4646/",
+			},
+		})
+
+		if err2 != nil {
+			t.Log(err2)
+		}
+
+		// HTTP GET webserver
+		http_helper.HttpGetWithRetry(t, "http://"+albURL, &tlsConfig, 200, "<html><body><h1>It works!</h1></body></html>", maxRetries, timeBetweenRetries)
 	}
 }

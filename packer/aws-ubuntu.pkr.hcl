@@ -8,8 +8,8 @@ packer {
 }
 
 locals {
-  vpc_id = "vpc-0383b61088104b500"
-  public_subnet_id = "subnet-01692ca41a0558ac5"
+  vpc_id = "vpc-00028798e5429b409"
+  public_subnet_id = "subnet-0caad7983ca44c651"
 }
 
 source "amazon-ebs" "ubuntu" {

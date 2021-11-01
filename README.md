@@ -56,7 +56,7 @@ and secure application delivery.
 
 1. 
       1a. Create and fill out a `terraform.tfvars` in the `terraform/` dir (cross reference `variables.tf`, \
-          it's advised to spin up 3 servers and at least 1 client). It's recommended to use the `eu-west-2` regions \ 
+          it's advised to spin up 3 servers and at least 1 client). It's recommended to use the `eu-west-2` regions. 
           Also adjust the `locals.tf` to personalise the stack.
 
       1b. Also update `main.tf` (backend stanza doesn't allow you to use variables here) to point to your own s3 bucket \
@@ -70,10 +70,10 @@ and secure application delivery.
 
 5. `./create-cluster.sh`
 
-This will spin up a nomad and consul cluster, with the consul and nomad servers on the same instance. Consul is \ 
+This will spin up a nomad and consul cluster, with the consul and nomad servers on the same instance. Consul is
 span up first and is responsible for service discorvery. Nomad then spins up and uses consul to find the other servers.
 
-Without the autoscaling and the fact that the consul and nomad servers are actually deployed together on one server \
+Without the autoscaling and the fact that the consul and nomad servers are actually deployed together on one server
 this is the infrastructure that is span up:
 
 ![nomad cluster infrastructure diagram](./assets/hashicorp-nomad-on-aws-architecture.1ac0036760cf893469567a74feb905adb6082a86.png)
@@ -81,9 +81,9 @@ this is the infrastructure that is span up:
 #### AMI & Packer
 
 When it comes to specifying an ami, it is recommended to use packer to create a base image which contains the \
-latest versions of nomad and consul. Note: If you try and do this in the sandbox after an AWS nuke has ran \ 
+latest versions of nomad and consul. Note: If you try and do this in the sandbox after an AWS nuke has ran  
 you will need to create a VPC with a public subnet from which packer can spin up an ec2 to create the ami. \
-You then need to pass the vpc id and public subnet id to the locals variable in `packer/aws-ubuntu.pkr.hcl` \ 
+You then need to pass the vpc id and public subnet id to the locals variable in `packer/aws-ubuntu.pkr.hcl`. 
 You can use a premade public ami (`"ami-0f5b77f5e53001306"`) too, however it contains quite old versions of \
 nomad and consul baked in. Follow these steps to create your own base image (with your AWS credentials exported):
 

@@ -81,7 +81,7 @@ this is the infrastructure that is span up:
 #### AMI & Packer
 
 When it comes to specifying an ami, it is recommended to use packer to create a base image which contains the \
-latest versions of nomad and consul. Note: If you try and do this in the sandbox after an AWS nuke has ran  
+latest versions of nomad and consul. Note: If you try and do this in the sandbox after an AWS nuke has ran \  
 you will need to create a VPC with a public subnet from which packer can spin up an ec2 to create the ami. \
 You then need to pass the vpc id and public subnet id to the locals variable in `packer/aws-ubuntu.pkr.hcl`. 
 You can use a premade public ami (`"ami-0f5b77f5e53001306"`) too, however it contains quite old versions of \

@@ -107,7 +107,7 @@ func checkServicesAreOK(t *testing.T, albURL string, maxRetries int, timeBetween
 		fabioArgs := []string{"job", "run", "fabio.nomad"}
 		// run fabio ingress load balancer
 		err := shell.RunCommandE(t, shell.Command{
-			Command:    "/usr/local/bin/nomad",
+			Command:    "nomad",
 			Args:       fabioArgs,
 			WorkingDir: "fixtures/",
 			Env: map[string]string{
@@ -122,7 +122,7 @@ func checkServicesAreOK(t *testing.T, albURL string, maxRetries int, timeBetween
 		webserverArgs := []string{"job", "run", "webserver.nomad"}
 		// run apache web server
 		err2 := shell.RunCommandE(t, shell.Command{
-			Command:    "/usr/local/bin/nomad",
+			Command:    "nomad",
 			Args:       webserverArgs,
 			WorkingDir: "fixtures/",
 			Env: map[string]string{
